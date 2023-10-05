@@ -14,6 +14,7 @@ import defaultNodes from './nodes.js'
 import defaultEdges from './edges.js'
 import Inputnode from './Inputnode.jsx';
 import ColorfulEdge from './ColorfulEdge.jsx';
+import Mode from './Modal.jsx';
 
 const nodeColor = (node) => {
     switch (node.type) {
@@ -37,6 +38,9 @@ const connectionLineStyle = { stroke: 'grey' };
 
 let nodeId = 0;
 
+
+
+// --------------------------------------------------------
 const Flow = () => {
     const [label, setLabel] = useState('');
     const [type, setType] = useState('default');
@@ -44,13 +48,25 @@ const Flow = () => {
     const [nodes, setNodes] = useState(defaultNodes);
     const [edges, setEdges] = useState(defaultEdges);
 
+    const [selectedNode, setSelectedNode]= useState()
+// ------------------------
+    const [modalIsOpen, setIsOpen] = useState(false);
+
+    function openModal() {
+      setIsOpen(true);
+    }
+  
+    function closeModal() {
+      setIsOpen(false);
+    }
+    // -----------------
     const onConnect = useCallback((params) => {
         const source = nodes.find((ele) => ele.id === params.source)
 
         params.type = 'ColorfulEdge'
         params.data = {}
 
-        if(source.type === 'input') {
+        if (source.type === 'input') {
             params.data.color = 'teal'
         } else {
             params.data.color = 'lightgreen'
@@ -59,9 +75,9 @@ const Flow = () => {
         setEdges((eds) => addEdge(params, eds))
     }, [nodes, setEdges]);
 
-    const onNodesChange = useCallback( (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),[] );
-    const onEdgesChange = useCallback( (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),[] );
-        
+    const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
+    const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+
     const nodeTypes = useMemo(() => ({ Inputnode }), []);
 
     const edgeTypes = useMemo(() => ({ ColorfulEdge }), []);
@@ -101,6 +117,10 @@ const Flow = () => {
                 edgeTypes={edgeTypes}
                 defaultEdgeOptions={edgeOptions}
                 connectionLineStyle={connectionLineStyle}
+                onNodeClick={(event, node) => {
+                    setSelectedNode(node)
+                    openModal()
+                }}
                 fitView
             >
                 <Controls />
@@ -112,12 +132,12 @@ const Flow = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <form onSubmit={onClick} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
-                            <div style={{ display: 'flex', flexDirection: 'column',fontSize:'x-small', boxShadow: 'black 0px 0px 2px 0px', padding: '5px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', fontSize: 'x-small', boxShadow: 'black 0px 0px 2px 0px', padding: '5px' }}>
                                 Label:
-                                <input placeholder='Type Here' type='text' value={label} onChange={(e) => {setLabel(e.target.value)}} required style={{ background: 'white', color: 'black',fontSize:'x-small' }} />
+                                <input placeholder='Type Here' type='text' value={label} onChange={(e) => { setLabel(e.target.value) }} required style={{ background: 'white', color: 'black', fontSize: 'x-small' }} />
                             </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column',fontSize:'x-small' ,boxShadow: 'black 0px 0px 2px 0px', padding: '5px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', fontSize: 'x-small', boxShadow: 'black 0px 0px 2px 0px', padding: '5px' }}>
                                 Type:
                                 <label>
                                     <input type="radio" name="myRadio" value="default" defaultChecked={true} onChange={handleRadioChange} />
@@ -140,6 +160,7 @@ const Flow = () => {
                 </Panel>
 
             </ReactFlow>
+            <Mode isOpen={modalIsOpen} closeModal={closeModal} title={selectedNode?.data?.label}/>
 
         </div>
     );
